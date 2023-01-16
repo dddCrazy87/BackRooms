@@ -10,7 +10,10 @@ public class GenerationManager : MonoBehaviour
     [SerializeField] private Transform WorldGrid;
     
     // prefab of the rooms
-    [SerializeField] private GameObject RoomType;
+    [SerializeField] private List<GameObject> RoomTypes;
+    [SerializeField] private GameObject EmptyRoom;
+    [SerializeField] private int GenEmptyChance;
+    [SerializeField] private Slider EmptinessSlider;
     
     // size of the map and room
     [SerializeField] private int MapSize = 16;
@@ -26,6 +29,7 @@ public class GenerationManager : MonoBehaviour
 
     private void Update() {
         MapSize = (int)Mathf.Pow(MapSizeSlider.value, 4);
+        GenEmptyChance = (int)EmptinessSlider.value;
         MapSizeRoot = (int)Mathf.Sqrt(MapSize);
     }
 
@@ -37,6 +41,10 @@ public class GenerationManager : MonoBehaviour
 
         GenerateBotton.interactable = false;
 
+        for (int i = 0; i < GenEmptyChance; i++) {
+            RoomTypes.Add(EmptyRoom);
+        }
+
         for (int i = 0; i < MapSize; i++) {
 
             if(nowPosTracker == MapSizeRoot) {
@@ -46,7 +54,7 @@ public class GenerationManager : MonoBehaviour
             }
 
             nowPos = new(nowX, nowY, nowZ);
-            Instantiate(RoomType, nowPos, Quaternion.identity, WorldGrid);
+            Instantiate(RoomTypes[Random.Range(0, RoomTypes.Count)], nowPos, Quaternion.identity, WorldGrid);
 
             nowPosTracker ++;
             nowX += RoomSize;

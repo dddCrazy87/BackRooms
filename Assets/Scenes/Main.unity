@@ -1405,7 +1405,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WorldGrid: {fileID: 1261803795}
-  RoomType: {fileID: 3904788212777548351, guid: 945c2786de810064ebb0dd003bbe0415, type: 3}
+  RoomTypes:
+  - {fileID: 3904788212777548351, guid: 2c4ed2d8530ad914e983988cc8beb512, type: 3}
+  - {fileID: 3904788212777548351, guid: 18b8006662320024ebaf1a6af0ddd387, type: 3}
+  - {fileID: 3904788212777548351, guid: a46b9c1738944f24d96051cc6f66b3cf, type: 3}
+  - {fileID: 3904788212777548351, guid: b119521850768754eaf4a1bac54c9b58, type: 3}
+  - {fileID: 3904788212777548351, guid: 5ee2b3ce7f6bb63429bbcde12808d6a5, type: 3}
+  - {fileID: 3904788212777548351, guid: 945c2786de810064ebb0dd003bbe0415, type: 3}
+  - {fileID: 3904788212777548351, guid: a7f6db05c8ab3874ba0421ee12d20d9f, type: 3}
   MapSize: 16
   RoomSize: 7
   MapSizeSlider: {fileID: 664706555}

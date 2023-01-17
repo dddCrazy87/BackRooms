@@ -6,15 +6,32 @@ public class PlayerMotor : MonoBehaviour
 {
     private CharacterController Controller;
     private Vector3 PlayerVelocity;
-    private bool isGrounded;
-    [SerializeField] private float Speed, JumpHeight, Gravity;
+    private bool isGrounded, Sprinting, lerpCrouch, Crouching;
+    private float CrouchTimer;
+    [SerializeField] private float Speed, HighSpeed, LowSpeed, JumpHeight, Gravity;
 
     private void Start() {
         Controller = GetComponent<CharacterController>();
+        Sprinting = false; lerpCrouch = false; Crouching = false;
+        CrouchTimer = 0; LowSpeed = Speed;
     }
 
     private void Update() {
         isGrounded = Controller.isGrounded;
+        if (lerpCrouch) {
+            CrouchTimer += Time.deltaTime;
+            float p = CrouchTimer / 1; p = p * p;
+            if (Crouching) {
+                Controller.height = Mathf.Lerp(Controller.height, 1, p);
+            }
+            else {
+                Controller.height = Mathf.Lerp(Controller.height, 2, p);
+            }
+            if (p > 1) {
+                lerpCrouch = false;
+                CrouchTimer = 0;
+            }
+        }
     }
 
     public void ProcessMove(Vector2 Input) {
@@ -30,5 +47,17 @@ public class PlayerMotor : MonoBehaviour
     public void Jump() {
         if(!isGrounded) return;
         PlayerVelocity.y = Mathf.Sqrt(-1 * JumpHeight * JumpHeight * Gravity);
+    }
+
+    public void Sprint() {
+        Sprinting = !Sprinting;
+        if (Sprinting) Speed = HighSpeed;
+        else           Speed = LowSpeed;
+    }
+
+    public void Crouch() {
+        Crouching = !Crouching;
+        CrouchTimer = 0;
+        lerpCrouch = true;
     }
 }

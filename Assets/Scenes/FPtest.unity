@@ -723,6 +723,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Speed: 5
+  HighSpeed: 8
+  LowSpeed: 0
   JumpHeight: 1.5
   Gravity: -9.8
 --- !u!114 &1085545513

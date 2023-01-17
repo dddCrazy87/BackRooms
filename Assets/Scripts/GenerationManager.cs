@@ -17,6 +17,12 @@ public class GenerationManager : MonoBehaviour
 {
     // parent of the world
     [SerializeField] private Transform WorldGrid;
+
+    // the state of generation
+    private GenerationState nowState;
+    
+    // player and camera
+    [SerializeField] private GameObject Player, MainCamera;
     
     // prefabs of the rooms
     [SerializeField] private List<GameObject> RoomTypes;
@@ -24,23 +30,27 @@ public class GenerationManager : MonoBehaviour
     [SerializeField] private int GenEmptyChance;
     [SerializeField] private Slider EmptinessSlider;
 
+    // pos of rooms
+    private float nowX = 0, nowY = 0, nowZ = 0;
+    private Vector3 nowPos;
+    private int nowPosTracker = 0;
+
+    // pos of Spawn room
+    private Vector3 SpawnPos = new(0, 0, 0), ExitPos = new(0, 0, 0);
+    private int SpawnID = 0, ExitID = 0;
+    
     // prefabs of the lights
     [SerializeField] private List<GameObject> LightTypes;
     [SerializeField] private int GenLightChance;
     [SerializeField] private Slider BrightnessSlider;
     
     // size of the map and room
-    [SerializeField] private int MapSize = 16, RoomSize = 7;
+    [SerializeField] private int MapSize, RoomSize;
+    private int MapSizeRoot = 0;
 
     // settings when generating world
     [SerializeField] private Slider MapSizeSlider;
     [SerializeField] private Button GenerateBotton;
-
-    private int MapSizeRoot = 0;
-    private float nowX = 0, nowY = 0, nowZ = 0;
-    private Vector3 nowPos;
-    private int nowPosTracker = 0;
-    private GenerationState nowState;
 
     private void Update() {
         MapSize = (int)Mathf.Pow(MapSizeSlider.value, 4);
@@ -69,8 +79,8 @@ public class GenerationManager : MonoBehaviour
         }
 
         // determine the pos of the Spawn Room and Exit Room
-        Vector3 SpawnPos = new(0, 0, 0), ExitPos = new(0, 0, RoomSize);
-        int SpawnID = 0, ExitID = UnityEngine.Random.Range(0, MapSize);
+        SpawnPos = new(0, 0, 0); ExitPos = new(0, 0, RoomSize);
+        SpawnID = 0; ExitID = UnityEngine.Random.Range(0, MapSize);
         do {
             SpawnID = UnityEngine.Random.Range(0, MapSize);
         } while(SpawnID == ExitID);
@@ -141,5 +151,13 @@ public class GenerationManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    // spawn a player
+    private void SpawnPlayer() {
+        Player.SetActive(false);
+        Player.transform.position = SpawnPos;
+        Player.SetActive(true);
+        MainCamera.SetActive(false);
     }
 }

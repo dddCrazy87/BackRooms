@@ -90,15 +90,11 @@ public class GenerationManager : MonoBehaviour
 
         // determine the pos of the Spawn Room and Exit Room
         SpawnPos = new(0, 0, 0); ExitPos = new(0, 0, RoomSize);
-        int Row, Col; SpawnID = 0; ExitID = 0;
+        SpawnID = 0; ExitID = 0;
         do {
-            Row     = UnityEngine.Random.Range(2, MapSizeRoot);
-            Col     = UnityEngine.Random.Range(2, MapSizeRoot);
-            SpawnID = MapSizeRoot * (Row - 1) + Col;
-            Row     = UnityEngine.Random.Range(2, MapSizeRoot);
-            Col     = UnityEngine.Random.Range(2, MapSizeRoot);
-            ExitID  = MapSizeRoot * (Row - 1) + Col;
-        } while(SpawnID == ExitID);
+            SpawnID = UnityEngine.Random.Range(1, MapSize + 1);
+            ExitID  = UnityEngine.Random.Range(1, MapSize + 1);
+        } while((SpawnID == ExitID) || OutRangeCheck(SpawnID, ExitID));
 
         // controll ths bottons when generating world
         GenerateBtn.interactable  = false;
@@ -108,7 +104,7 @@ public class GenerationManager : MonoBehaviour
         int AllState = Enum.GetNames(typeof(GenerationState)).Length;
         for (int StateID = 0; StateID < AllState; StateID++) {
 
-            nowPosTracker = 1; nowRoom = 1;
+            nowPosTracker = 0; nowRoom = 1;
 
             for (int i = 1; i <= MapSize; i++) {
 
@@ -119,7 +115,7 @@ public class GenerationManager : MonoBehaviour
                         GenerateBarrier();
                     }
                     
-                    nowPosTracker = 1;
+                    nowPosTracker = 0;
                     nowX = 0; nowZ += RoomSize;
 
                     if(nowState == GenerationState.GeeratingBarrier) {
@@ -131,7 +127,10 @@ public class GenerationManager : MonoBehaviour
                 if (i == SpawnID || i == ExitID) {
                     SpawnPos =  (i == SpawnID) ? new(nowX, nowY, nowZ) : SpawnPos;
                     ExitPos  =  (i == ExitID ) ? new(nowX, nowY, nowZ) : ExitPos;
-                    goto Continue;
+                    nowRoom ++;
+                    nowPosTracker ++;
+                    nowX += RoomSize;
+                    continue;
                 }
                 
                 nowPos = new(nowX, nowY, nowZ);
@@ -168,10 +167,9 @@ public class GenerationManager : MonoBehaviour
                         break;
                     }
                 }
-                Continue:
-                    nowRoom ++;
-                    nowPosTracker ++;
-                    nowX += RoomSize;
+                nowRoom ++;
+                nowPosTracker ++;
+                nowX += RoomSize;
             }
             GoNextState();
 
@@ -190,12 +188,33 @@ public class GenerationManager : MonoBehaviour
                 }
             }
         }
+        nowX = RoomSize * MapSizeRoot;
+        nowZ = RoomSize * (MapSizeRoot - 1);
+        GenerateBarrier();
+    }
+
+    private bool OutRangeCheck(int id1, int id2) {
+        if(((id1 >= 1) && (id1 <= MapSizeRoot)) 
+        || ((id1 >= MapSize - MapSizeRoot + 1) && (id1 <= MapSize))) {
+            return true;
+        }
+        if(((id2 >= 1) && (id2 <= MapSizeRoot)) 
+        || ((id2 >= MapSize - MapSizeRoot + 1) && (id2 <= MapSize))) {
+            return true;
+        }
+        if((id1 % MapSizeRoot == 0) || (id1 % MapSizeRoot == 1)) {
+            return true;
+        }
+        if((id2 % MapSizeRoot == 0) || (id2 % MapSizeRoot == 1)) {
+            return true;
+        }
+        return false;
     }
 
     private void GoNextState() {
         nowState ++;
         nowX = 0; nowY = 0; nowZ = 0;
-        nowPosTracker = 1; nowRoom = 1;
+        nowPosTracker = 0; nowRoom = 1;
         nowPos = Vector3.zero;
     }
 

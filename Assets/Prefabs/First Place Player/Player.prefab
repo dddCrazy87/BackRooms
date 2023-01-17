@@ -205,7 +205,7 @@ MonoBehaviour:
   Speed: 5
   HighSpeed: 15
   LowSpeed: 0
-  JumpHeight: 2
+  JumpHeight: 1.5
   Gravity: -9.8
 --- !u!114 &1085545513
 MonoBehaviour:

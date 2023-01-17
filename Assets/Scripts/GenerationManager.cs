@@ -50,7 +50,13 @@ public class GenerationManager : MonoBehaviour
 
     // settings when generating world
     [SerializeField] private Slider MapSizeSlider;
-    [SerializeField] private Button GenerateBotton;
+    [SerializeField] private Button GenerateBtn, ReloadBtn, SpwanBtn;
+
+    private void Start() {
+        GenerateBtn.interactable  = true;
+        ReloadBtn.interactable    = false;
+        SpwanBtn.interactable     = false;
+    }
 
     private void Update() {
         MapSize = (int)Mathf.Pow(MapSizeSlider.value, 4);
@@ -85,8 +91,10 @@ public class GenerationManager : MonoBehaviour
             SpawnID = UnityEngine.Random.Range(0, MapSize);
         } while(SpawnID == ExitID);
 
-        // turn off Generate botton when generating world
-        GenerateBotton.interactable = false;
+        // controll ths bottons when generating world
+        GenerateBtn.interactable  = false;
+        ReloadBtn.interactable    = true;
+        SpwanBtn.interactable     = true;
 
         int AllState = Enum.GetNames(typeof(GenerationState)).Length;
         for (int StateID = 0; StateID < AllState; StateID++) {

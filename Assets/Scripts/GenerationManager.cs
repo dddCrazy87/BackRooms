@@ -10,7 +10,8 @@ public enum GenerationState {
     GeneratingRooms,
     GeneratingLights,
     GeneratingSpawnRoom,
-    GeneratingExitRoom
+    GeneratingExitRoom,
+    GeeratingBarrier
 }
 
 public class GenerationManager : MonoBehaviour
@@ -26,14 +27,14 @@ public class GenerationManager : MonoBehaviour
     
     // prefabs of the rooms
     [SerializeField] private List<GameObject> RoomTypes;
-    [SerializeField] private GameObject EmptyRoom, SpawnRoom, ExitRoom;
+    [SerializeField] private GameObject EmptyRoom, SpawnRoom, ExitRoom, Barrier;
     [SerializeField] private int GenEmptyChance;
     [SerializeField] private Slider EmptinessSlider;
 
-    // pos of rooms
+    // data when generating rooms
     private float nowX = 0, nowY = 0, nowZ = 0;
     private Vector3 nowPos;
-    private int nowPosTracker = 0;
+    private int nowPosTracker, nowRoom;
 
     // pos of Spawn room
     private Vector3 SpawnPos = new(0, 0, 0), ExitPos = new(0, 0, 0);
@@ -65,16 +66,19 @@ public class GenerationManager : MonoBehaviour
         MapSizeRoot = (int)Mathf.Sqrt(MapSize);
     }
 
-    // reload the scene
-    public void ReloadWorld() {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    // spawn a player
+    public void SpawnPlayer() {
+        Player.SetActive(false);
+        SpawnPos.y += 5;
+        Player.transform.position = SpawnPos;
+        Player.SetActive(true);
+        MainCamera.SetActive(false);
     }
 
-    private void GoNextState() {
-        nowState ++;
-        nowX = 0; nowY = 0; nowZ = 0;
-        nowPosTracker = 0;
-        nowPos = Vector3.zero;
+    // generate barriers
+    public void GenerateBarrier() {
+        nowPos = new(nowX, nowY, nowZ);
+        Instantiate(Barrier, nowPos, Quaternion.identity, WorldGrid);
     }
 
     public void GenerateWorld() {
@@ -86,9 +90,14 @@ public class GenerationManager : MonoBehaviour
 
         // determine the pos of the Spawn Room and Exit Room
         SpawnPos = new(0, 0, 0); ExitPos = new(0, 0, RoomSize);
-        SpawnID = 0; ExitID = UnityEngine.Random.Range(0, MapSize);
+        int Row, Col; SpawnID = 0; ExitID = 0;
         do {
-            SpawnID = UnityEngine.Random.Range(0, MapSize);
+            Row     = UnityEngine.Random.Range(2, MapSizeRoot);
+            Col     = UnityEngine.Random.Range(2, MapSizeRoot);
+            SpawnID = MapSizeRoot * (Row - 1) + Col;
+            Row     = UnityEngine.Random.Range(2, MapSizeRoot);
+            Col     = UnityEngine.Random.Range(2, MapSizeRoot);
+            ExitID  = MapSizeRoot * (Row - 1) + Col;
         } while(SpawnID == ExitID);
 
         // controll ths bottons when generating world
@@ -99,25 +108,35 @@ public class GenerationManager : MonoBehaviour
         int AllState = Enum.GetNames(typeof(GenerationState)).Length;
         for (int StateID = 0; StateID < AllState; StateID++) {
 
-            for (int i = 0; i < MapSize; i++) {
+            nowPosTracker = 1; nowRoom = 1;
+
+            for (int i = 1; i <= MapSize; i++) {
 
                 // go to the next row
                 if(nowPosTracker == MapSizeRoot) {
-                    nowPosTracker = 0;
+
+                    if(nowState == GenerationState.GeeratingBarrier) {
+                        GenerateBarrier();
+                    }
+                    
+                    nowPosTracker = 1;
                     nowX = 0; nowZ += RoomSize;
+
+                    if(nowState == GenerationState.GeeratingBarrier) {
+                        GenerateBarrier();
+                    }
                 }
 
                 // continue when the pos is for the Spawn room or the Exit room
-                if (i == SpawnID) {
-                    SpawnPos =  new(nowX, nowY, nowZ);
-                    continue;
+                if (i == SpawnID || i == ExitID) {
+                    SpawnPos =  (i == SpawnID) ? new(nowX, nowY, nowZ) : SpawnPos;
+                    ExitPos  =  (i == ExitID ) ? new(nowX, nowY, nowZ) : ExitPos;
+                    goto Continue;
                 }
-                else if (i == ExitID) {
-                    ExitPos =  new(nowX, nowY, nowZ);
-                    continue;
-                }
-                else nowPos = new(nowX, nowY, nowZ);
+                
+                nowPos = new(nowX, nowY, nowZ);
 
+                // generating obj
                 switch (nowState) {
 
                     // generate rooms
@@ -137,10 +156,22 @@ public class GenerationManager : MonoBehaviour
                         }
                         break;
                     }
-                }
 
-                nowPosTracker ++;
-                nowX += RoomSize;
+                    // generate barriers
+                    case GenerationState.GeeratingBarrier: {
+                        if(nowRoom <= MapSizeRoot && nowRoom >= 1) {
+                            GenerateBarrier();
+                        }
+                        if(nowRoom <= MapSize && nowRoom >= MapSize - MapSizeRoot + 1) {
+                            GenerateBarrier();
+                        }
+                        break;
+                    }
+                }
+                Continue:
+                    nowRoom ++;
+                    nowPosTracker ++;
+                    nowX += RoomSize;
             }
             GoNextState();
 
@@ -161,12 +192,16 @@ public class GenerationManager : MonoBehaviour
         }
     }
 
-    // spawn a player
-    public void SpawnPlayer() {
-        Player.SetActive(false);
-        SpawnPos.y += 5;
-        Player.transform.position = SpawnPos;
-        Player.SetActive(true);
-        MainCamera.SetActive(false);
+    private void GoNextState() {
+        nowState ++;
+        nowX = 0; nowY = 0; nowZ = 0;
+        nowPosTracker = 1; nowRoom = 1;
+        nowPos = Vector3.zero;
+    }
+
+    // reload the scene
+    public void ReloadWorld() {
+        Time.timeScale = 1;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

@@ -8,7 +8,9 @@ using UnityEngine.UI;
 public enum GenerationState {
     Idle,
     GeneratingRooms,
-    GeneratingLights
+    GeneratingLights,
+    GeneratingSpawnRoom,
+    GeneratingExitRoom
 }
 
 public class GenerationManager : MonoBehaviour
@@ -18,7 +20,7 @@ public class GenerationManager : MonoBehaviour
     
     // prefabs of the rooms
     [SerializeField] private List<GameObject> RoomTypes;
-    [SerializeField] private GameObject EmptyRoom;
+    [SerializeField] private GameObject EmptyRoom, SpawnRoom, ExitRoom;
     [SerializeField] private int GenEmptyChance;
     [SerializeField] private Slider EmptinessSlider;
 
@@ -28,8 +30,7 @@ public class GenerationManager : MonoBehaviour
     [SerializeField] private Slider BrightnessSlider;
     
     // size of the map and room
-    [SerializeField] private int MapSize = 16;
-    [SerializeField] private float RoomSize = 7;
+    [SerializeField] private int MapSize = 16, RoomSize = 7;
 
     // settings when generating world
     [SerializeField] private Slider MapSizeSlider;
@@ -48,6 +49,7 @@ public class GenerationManager : MonoBehaviour
         MapSizeRoot = (int)Mathf.Sqrt(MapSize);
     }
 
+    // reload the scene
     public void ReloadWorld() {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
@@ -61,31 +63,53 @@ public class GenerationManager : MonoBehaviour
 
     public void GenerateWorld() {
 
+        // Add the empty rooms into the roomtypes
+        for (int i = 0; i < GenEmptyChance; i++) {
+            RoomTypes.Add(EmptyRoom);
+        }
+
+        // determine the pos of the Spawn Room and Exit Room
+        Vector3 SpawnPos = new(0, 0, 0), ExitPos = new(0, 0, RoomSize);
+        int SpawnID = 0, ExitID = UnityEngine.Random.Range(0, MapSize);
+        do {
+            SpawnID = UnityEngine.Random.Range(0, MapSize);
+        } while(SpawnID == ExitID);
+
+        // turn off Generate botton when generating world
         GenerateBotton.interactable = false;
 
         int AllState = Enum.GetNames(typeof(GenerationState)).Length;
         for (int StateID = 0; StateID < AllState; StateID++) {
 
-            for (int i = 0; i < GenEmptyChance; i++) {
-                RoomTypes.Add(EmptyRoom);
-            }
-
             for (int i = 0; i < MapSize; i++) {
 
+                // go to the next row
                 if(nowPosTracker == MapSizeRoot) {
                     nowPosTracker = 0;
-                    nowX = 0;
-                    nowZ += RoomSize;
+                    nowX = 0; nowZ += RoomSize;
                 }
-                nowPos = new(nowX, nowY, nowZ);
+
+                // continue when the pos is for the Spawn room or the Exit room
+                if (i == SpawnID) {
+                    SpawnPos =  new(nowX, nowY, nowZ);
+                    continue;
+                }
+                else if (i == ExitID) {
+                    ExitPos =  new(nowX, nowY, nowZ);
+                    continue;
+                }
+                else nowPos = new(nowX, nowY, nowZ);
 
                 switch (nowState) {
+
+                    // generate rooms
                     case GenerationState.GeneratingRooms: {
                         Instantiate(RoomTypes[UnityEngine.Random.Range(0, RoomTypes.Count)]
                                     , nowPos, Quaternion.identity, WorldGrid);
                         break;
                     }
 
+                    // generate lights
                     case GenerationState.GeneratingLights: {
                         System.Random rnd = new System.Random();
                         int rand = rnd.Next(0, GenLightChance + 1);
@@ -96,14 +120,26 @@ public class GenerationManager : MonoBehaviour
                         break;
                     }
                 }
-                
+
                 nowPosTracker ++;
                 nowX += RoomSize;
             }
-
             GoNextState();
+
+            switch (nowState) {
+
+                // generate Spawn room
+                case GenerationState.GeneratingSpawnRoom: {
+                    Instantiate(SpawnRoom, SpawnPos, Quaternion.identity, WorldGrid);
+                    break;
+                }
+
+                // generate Exit room
+                case GenerationState.GeneratingExitRoom: {
+                    Instantiate(ExitRoom, ExitPos, Quaternion.identity, WorldGrid);
+                    break;
+                }
+            }
         }
     }
-
-
 }

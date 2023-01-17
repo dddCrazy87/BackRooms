@@ -154,8 +154,9 @@ public class GenerationManager : MonoBehaviour
     }
 
     // spawn a player
-    private void SpawnPlayer() {
+    public void SpawnPlayer() {
         Player.SetActive(false);
+        SpawnPos.y += 5;
         Player.transform.position = SpawnPos;
         Player.SetActive(true);
         MainCamera.SetActive(false);

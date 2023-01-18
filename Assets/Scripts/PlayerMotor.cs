@@ -7,13 +7,15 @@ public class PlayerMotor : MonoBehaviour
     private CharacterController Controller;
     private Vector3 PlayerVelocity;
     private bool isGrounded, Sprinting, lerpCrouch, Crouching;
-    private float CrouchTimer;
-    [SerializeField] private float Speed, HighSpeed, LowSpeed, JumpHeight, Gravity;
+    private float Speed, CrouchTimer;
+    [SerializeField] private float HighSpeed, LowSpeed, JumpHeight, Height, CrouchingHeight, Gravity;
 
     private void Start() {
         Controller = GetComponent<CharacterController>();
         Sprinting = false; lerpCrouch = false; Crouching = false;
-        CrouchTimer = 0; LowSpeed = Speed;
+        CrouchTimer = 0;
+        Speed = LowSpeed;
+        Controller.height = Height;
     }
 
     private void Update() {
@@ -22,10 +24,10 @@ public class PlayerMotor : MonoBehaviour
             CrouchTimer += Time.deltaTime;
             float p = CrouchTimer / 1; p = p * p;
             if (Crouching) {
-                Controller.height = Mathf.Lerp(Controller.height, 1, p);
+                Controller.height = Mathf.Lerp(Controller.height, CrouchingHeight, p);
             }
             else {
-                Controller.height = Mathf.Lerp(Controller.height, 2, p);
+                Controller.height = Mathf.Lerp(Controller.height, Height, p);
             }
             if (p > 1) {
                 lerpCrouch = false;

@@ -297,11 +297,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97217745348c8344aaee151bed289cb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Speed: 15
-  HighSpeed: 25
-  LowSpeed: 0
-  JumpHeight: 1.5
-  Gravity: -9.8
+  HighSpeed: 10
+  LowSpeed: 5
+  JumpHeight: 2
+  Height: 3
+  CrouchingHeight: 1
+  Gravity: -30
 --- !u!114 &1085545513
 MonoBehaviour:
   m_ObjectHideFlags: 0
